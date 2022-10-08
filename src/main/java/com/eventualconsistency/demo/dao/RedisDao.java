@@ -1,9 +1,5 @@
 package com.eventualconsistency.demo.dao;
 
-import com.eventualconsistency.demo.entity.RedisEntry;
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -20,15 +16,15 @@ public class RedisDao {
 //
 //  public static final String HASH_KEY = "Key";
 //
-//  public RedisEntry save(RedisEntry redisEntry) {
+//  public RedisEntry1 save(RedisEntry1 redisEntry) {
 //    template.opsForHash().put(HASH_KEY, redisEntry.getKey(), redisEntry);
 //    return redisEntry;
 //  }
-//  public List<RedisEntry> findAll(){
+//  public List<RedisEntry1> findAll(){
 //    return template.opsForHash().values(HASH_KEY);
 //  }
-//  public RedisEntry findEntryById(int id){
-//    return (RedisEntry) template.opsForHash().get(HASH_KEY, id);
+//  public RedisEntry1 findEntryById(int id){
+//    return (RedisEntry1) template.opsForHash().get(HASH_KEY, id);
 //  }
 
 

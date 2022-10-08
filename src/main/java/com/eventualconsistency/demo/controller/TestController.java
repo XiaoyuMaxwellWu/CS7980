@@ -2,27 +2,18 @@ package com.eventualconsistency.demo.controller;
 
 
 import com.eventualconsistency.demo.dao.MysqlRepository;
-import com.eventualconsistency.demo.dao.RedisRepository;
 import com.eventualconsistency.demo.entity.MysqlTab;
 import com.eventualconsistency.demo.entity.RedisEntry;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.cache.spi.support.AbstractReadWriteAccess.Item;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.Mapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -43,6 +34,9 @@ public class TestController {
   private RedisTemplate redisTemplate;
   public static final String KEY = "redis_cache";
 
+  // find all, will first look for Redis, if not found, look for MySQL
+
+
   //add a row to mysql
   @PostMapping("/addMysql")
   public void addMysql(@RequestBody MysqlTab mysqlTab) {
@@ -54,8 +48,8 @@ public class TestController {
   @PostMapping("deleteMysql")
   @Transactional
   public void deleteMysqlByKey(@RequestBody Map<String, Object> requestInfo) {
-    String key = requestInfo.get("mysqlKey")+"";
-    mysqlRepository.deleteByMysqlKey(key);
+    String key = requestInfo.get("csKey") + "";
+    mysqlRepository.deleteByCsKey(key);
     log.info("Delete a row by key: " + key);
   }
 
@@ -76,14 +70,14 @@ public class TestController {
   //add an entry to Redis
   @PostMapping("/addRedis")
   public void addRedis(@RequestBody RedisEntry entry) {
-    redisTemplate.opsForHash().put(KEY, entry.getKey(), entry);
+    redisTemplate.opsForHash().put(KEY, entry.getCsKey(), entry);
     log.info("Saved entry in Redis: " + entry);
   }
 
   //delete redis
   @PostMapping("/deleteRedis")
   public void deleteEntryByKey(@RequestBody Map<String, String> requestInfo) {
-    String key = requestInfo.get("key");
+    String key = requestInfo.get("csKey");
     redisTemplate.opsForHash().delete(KEY, key);
     log.info("Delete an entry by key: " + key);
   }

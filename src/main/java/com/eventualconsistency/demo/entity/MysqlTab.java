@@ -25,8 +25,8 @@ import org.springframework.data.redis.core.RedisHash;
 @NoArgsConstructor
 public class MysqlTab {
   @Id
-  private String mysqlKey;
-  private String mysqlValue;
+  private String csKey;
+  private String csValue;
   
   
 }

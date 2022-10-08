@@ -1,8 +1,6 @@
 package com.eventualconsistency.demo.dao;
 
-import com.eventualconsistency.demo.entity.MysqlTab;
 import com.eventualconsistency.demo.entity.RedisEntry;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 
 /**
