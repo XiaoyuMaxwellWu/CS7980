@@ -1,0 +1,24 @@
+package com.eventualconsistency.demo.config.database;
+
+import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * @description: some desc
+ * @author: Xiaoyu Wu
+ * @email: wu.xiaoyu@northeastern.edu
+ * @date: 10/7/22 5:17 PM
+ */
+@Configuration
+public class DatabaseConfig {
+  @Bean
+  @ConfigurationProperties("spring.datasource")
+  public DataSourceProperties dataSourceProperties() {
+    return new DataSourceProperties();
+  }
+
+ 
+}
