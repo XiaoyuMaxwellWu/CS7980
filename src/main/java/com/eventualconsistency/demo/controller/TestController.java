@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -33,14 +33,15 @@ public class TestController {
   private MysqlRepository mysqlRepository;
 
   @Autowired
-  private RedisTemplate redisTemplate;
+  private HashOperations hashOperations;
+  
   public static final String KEY = "redis_cache";
 
-  // find all, will first look for Redis, if not found, look for MySQL
+  // find by key, will first look for Redis, if not found, look for MySQL
   @PostMapping("/findByKey")
   public ResponseEntry findByKey(@RequestBody Map<String, Object> requestInfo) {
     String key = requestInfo.get("csKey") + "";
-    String value = (String) redisTemplate.opsForHash().get(KEY, key);
+    String value = (String) hashOperations.get(KEY, key);
     if (value == null) {
       log.info("look from Mysql");
       MysqlTab mysqlTab = mysqlRepository.findByCsKey(key);
@@ -48,21 +49,20 @@ public class TestController {
         return null;
       }
       value = mysqlTab.getCsValue();
-      redisTemplate.opsForHash().put(KEY, key, value);
+      hashOperations.put(KEY, key, value);
     }
     return new ResponseEntry(key, value);
   }
-  
-  
+
 
   //clear all data in Mysql and Redis
   @Transactional
   @GetMapping("/clearAll")
   public void clearAll() {
     mysqlRepository.deleteAll();
-    Map entries = redisTemplate.opsForHash().entries(KEY);
+    Map entries = hashOperations.entries(KEY);
     for (Object o : entries.keySet()) {
-      redisTemplate.opsForHash().delete(KEY, (String) o);
+      hashOperations.delete(KEY, (String) o);
     }
     log.info("All data has been cleared");
   }
@@ -88,7 +88,7 @@ public class TestController {
   public void updateMysql(@RequestBody MysqlTab mysqlTab) {
     mysqlRepository.save(mysqlTab);
     log.info("Saved entry in Mysql: " + mysqlTab);
-    redisTemplate.opsForHash().delete(KEY, mysqlTab.getCsKey());
+    hashOperations.delete(KEY, mysqlTab.getCsKey());
     log.info("Deleted entry in Redis: " + mysqlTab);
   }
 
@@ -102,7 +102,7 @@ public class TestController {
   //add an entry to Redis
   @PostMapping("/addRedis")
   public void addRedis(@RequestBody RedisEntry entry) {
-    redisTemplate.opsForHash().put(KEY, entry.getCsKey(), entry);
+    hashOperations.put(KEY, entry.getCsKey(), entry);
     log.info("Saved entry in Redis: " + entry);
   }
 
@@ -110,7 +110,7 @@ public class TestController {
   @PostMapping("/deleteRedis")
   public void deleteEntryByKey(@RequestBody Map<String, String> requestInfo) {
     String key = requestInfo.get("csKey");
-    redisTemplate.opsForHash().delete(KEY, key);
+    hashOperations.delete(KEY, key);
     log.info("Delete an entry by key: " + key);
   }
 
@@ -123,7 +123,7 @@ public class TestController {
   //find all entries
   @GetMapping("/redis")
   public Map findFromRedis() {
-    return redisTemplate.opsForHash().entries(KEY);
+    return hashOperations.entries(KEY);
   }
 
 
