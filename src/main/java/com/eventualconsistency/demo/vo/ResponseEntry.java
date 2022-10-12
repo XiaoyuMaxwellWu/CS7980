@@ -17,6 +17,7 @@ public class ResponseEntry {
 
   private String csKey;
   private String csValue;
-
+  private Boolean isReadFromRedis;
+  
 
 }

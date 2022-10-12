@@ -1,5 +1,6 @@
 package com.eventualconsistency.demo.entity;
 
+import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -24,9 +25,25 @@ import org.springframework.data.redis.core.RedisHash;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MysqlTab {
+
   @Id
   private String csKey;
   private String csValue;
-  
-  
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    MysqlTab mysqlTab = (MysqlTab) o;
+    return Objects.equals(csKey, mysqlTab.csKey);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(csKey);
+  }
 }
