@@ -131,5 +131,64 @@ public class TestController {
             + Constant.num_threads[whichExecutor]);
   }
 
+  @GetMapping("/inconsistency")
+  public void getInconsistency() throws InterruptedException, ExecutionException {
+    int whichExecutor = 0;
+    ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
+    HashMap<String, Object> requestInfo = new HashMap<>();
+    requestInfo.put("csKey", "K1");
+    ResponseEntry exactEntry = mysqlRedisController.findByKey(requestInfo);
+    ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
+    ReadLock readLock = reentrantReadWriteLock.readLock();
+    WriteLock writeLock = reentrantReadWriteLock.writeLock();
+    List<Future<Boolean[]>> results = new ArrayList<>();
+    // execute reading from redis or mysql
+    mysqlRedisController.clearAll();
+    String uuid2 = UUID.randomUUID().toString();
+    MysqlTab mysqlTab2 = new MysqlTab("K1", uuid2);
+    mysqlRedisController.addMysql(mysqlTab2);
+      Future<Boolean[]> submit = poolExecutor.submit(() -> {
+        //Thread.sleep(new Random().nextInt(500));
+        Boolean[] res = new Boolean[2];
 
+        ResponseEntry entry = mysqlRedisController.findByKeyLongerTime(requestInfo);
+        res[0] = entry.getIsReadFromRedis();
+        readLock.lock();
+        res[1] = entry.getCsValue().equals(exactEntry.getCsValue()) ? true : false;
+        readLock.unlock();
+        return res;
+      });
+      results.add(submit);
+
+    // update mysql, delete in redis
+    new Thread(() -> {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      String uuid = UUID.randomUUID().toString();
+      MysqlTab mysqlTab = new MysqlTab("K1", uuid);
+//      mysqlRedisController.updateMysql(mysqlTab);
+      mysqlRedisController.saveInMysql(mysqlTab);
+      writeLock.lock();
+      exactEntry.setCsValue(uuid);
+      writeLock.unlock();
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      //mysqlRedisController.deleteInRedis(mysqlTab.getCsKey());
+    }).start();
+
+    int mysqlCnt = 0, redisCnt = 0, consistentCnt = 0;
+    for (Future<Boolean[]> result : results) {
+      Boolean[] res = result.get();
+      mysqlCnt += res[0] ? 0 : 1;
+      redisCnt += res[0] ? 1 : 0;
+      consistentCnt += res[1] ? 1 : 0;
+    }
+
+  }
 }

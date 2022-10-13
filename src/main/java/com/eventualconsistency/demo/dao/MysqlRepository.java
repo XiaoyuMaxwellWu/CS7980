@@ -13,4 +13,5 @@ import org.springframework.stereotype.Repository;
 public interface MysqlRepository extends JpaRepository<MysqlTab, Long> {
   void deleteByCsKey(String csKey);
   MysqlTab findByCsKey(String csKey);
+
 }

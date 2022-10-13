@@ -62,6 +62,30 @@ public class MysqlRedisController {
     }
   }
 
+  @PostMapping("/findByKeyLongerTime")
+  public ResponseEntry findByKeyLongerTime(@RequestBody Map<String, Object> requestInfo)
+          throws InterruptedException {
+    String key = requestInfo.get("csKey") + "";
+    String value;
+    Object tryGet = hashOperations.get(Constant.KEY, key);
+    if (tryGet == null) {
+      log.info("look from Mysql");
+      MysqlTab mysqlTab = mysqlRepository.findByCsKey(key);
+      if (mysqlTab == null) {
+        return null;
+      }
+      value = mysqlTab.getCsValue();
+      log.info("value is: " + value);
+      Thread.sleep(5000);
+      hashOperations.put(Constant.KEY, key, value);
+      return new ResponseEntry(key, value, false);
+    } else {
+      value = tryGet.toString();
+      log.info("look from Redis");
+      return new ResponseEntry(key, value, true);
+    }
+  }
+
 
   //clear all data in Mysql and Redis
   @Transactional
