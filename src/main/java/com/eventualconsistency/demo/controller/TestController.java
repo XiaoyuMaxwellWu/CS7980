@@ -75,6 +75,28 @@ public class TestController {
 
   @GetMapping("/invalidation")
   public void hotSpotInvalidation() throws InterruptedException, ExecutionException {
+
+    ArrayList<int[]> res = new ArrayList<>();
+    for (int i = 0; i < 20; i++) {
+      res.add(testInvalid());
+    }
+    for (int i = 0; i < res.size(); i++) {
+      int[] store = res.get(i);
+      log.info(i+"th "+"time:");
+      System.out.println(i+"th "+"time:");
+      System.out.println("Num of threads read from Redis: " + store[0]);
+      System.out.println("Num of threads read from Mysql: " + store[1]);
+      System.out.println(
+          "inconsistent read/total read:" + (store[3] - store[2])
+              + " / "
+              + store[3]);
+    }
+    
+    
+  }
+
+
+  private int[] testInvalid() throws InterruptedException, ExecutionException {
     int whichExecutor = 0;
     ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
     HashMap<String, Object> requestInfo = new HashMap<>();
@@ -122,13 +144,15 @@ public class TestController {
       redisCnt += res[0] ? 1 : 0;
       consistentCnt += res[1] ? 1 : 0;
     }
-
     log.info("Num of threads read from Redis: " + redisCnt);
     log.info("Num of threads read from Mysql: " + mysqlCnt);
     log.info(
         "inconsistent read/total read:" + (Constant.num_threads[whichExecutor] - consistentCnt)
             + " / "
             + Constant.num_threads[whichExecutor]);
+    return new int[]{redisCnt, mysqlCnt, (Constant.num_threads[whichExecutor] - consistentCnt),
+        Constant.num_threads[whichExecutor]};
+
   }
 
   @GetMapping("/inconsistency")
@@ -147,18 +171,18 @@ public class TestController {
     String uuid2 = UUID.randomUUID().toString();
     MysqlTab mysqlTab2 = new MysqlTab("K1", uuid2);
     mysqlRedisController.addMysql(mysqlTab2);
-      Future<Boolean[]> submit = poolExecutor.submit(() -> {
-        //Thread.sleep(new Random().nextInt(500));
-        Boolean[] res = new Boolean[2];
+    Future<Boolean[]> submit = poolExecutor.submit(() -> {
+      //Thread.sleep(new Random().nextInt(500));
+      Boolean[] res = new Boolean[2];
 
-        ResponseEntry entry = mysqlRedisController.findByKeyLongerTime(requestInfo);
-        res[0] = entry.getIsReadFromRedis();
-        readLock.lock();
-        res[1] = entry.getCsValue().equals(exactEntry.getCsValue()) ? true : false;
-        readLock.unlock();
-        return res;
-      });
-      results.add(submit);
+      ResponseEntry entry = mysqlRedisController.findByKeyLongerTime(requestInfo);
+      res[0] = entry.getIsReadFromRedis();
+      readLock.lock();
+      res[1] = entry.getCsValue().equals(exactEntry.getCsValue()) ? true : false;
+      readLock.unlock();
+      return res;
+    });
+    results.add(submit);
 
     // update mysql, delete in redis
     new Thread(() -> {
