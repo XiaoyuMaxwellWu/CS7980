@@ -87,7 +87,7 @@ public class TestController {
       System.out.println("Num of threads read from Redis: " + store[0]);
       System.out.println("Num of threads read from Mysql: " + store[1]);
       System.out.println(
-          "inconsistent read/total read:" + (store[3] - store[2])
+          "inconsistent read/total read:" + (store[2])
               + " / "
               + store[3]);
     }
