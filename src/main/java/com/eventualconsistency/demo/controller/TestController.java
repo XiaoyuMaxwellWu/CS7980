@@ -48,30 +48,7 @@ public class TestController {
     }
   }
 
-  int a = 3;
-
-  @GetMapping("/lock")
-  public void test() throws InterruptedException {
-    ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
-    ReadLock readLock = reentrantReadWriteLock.readLock();
-    WriteLock writeLock = reentrantReadWriteLock.writeLock();
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          writeLock.lock();
-          a = 5;
-          Thread.sleep(20);
-          writeLock.unlock();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-    }).start();
-    readLock.lock();
-    System.out.println("a is: " + a);
-    readLock.unlock();
-  }
+  
 
   @GetMapping("/invalidation")
   public void hotSpotInvalidation() throws InterruptedException, ExecutionException {
@@ -215,4 +192,8 @@ public class TestController {
     }
 
   }
+  
+  
+  
+  
 }

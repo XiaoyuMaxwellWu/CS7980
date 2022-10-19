@@ -3,6 +3,7 @@ package com.eventualconsistency.demo.entity;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
@@ -15,6 +16,7 @@ import org.springframework.data.redis.core.RedisHash;
 @RedisHash("redis_cache")
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class RedisEntry implements Serializable {
   private static final long serialVersionUID =  -1717263197540570145L;
   @Id

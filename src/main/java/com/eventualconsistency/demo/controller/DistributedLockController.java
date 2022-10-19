@@ -3,11 +3,13 @@ package com.eventualconsistency.demo.controller;
 import com.eventualconsistency.demo.constants.Constant;
 import com.eventualconsistency.demo.dao.MysqlRepository;
 import com.eventualconsistency.demo.entity.MysqlTab;
+import com.eventualconsistency.demo.entity.RedisEntry;
 import com.eventualconsistency.demo.vo.ResponseEntry;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -34,6 +36,9 @@ public class DistributedLockController {
 
   @Autowired
   private HashOperations hashOperations;
+
+  @Autowired
+  private MysqlRedisController mysqlRedisController;
 
   @Autowired
   private RedisTemplate redisTemplate;
@@ -76,6 +81,25 @@ public class DistributedLockController {
 
   }
 
+  @PostMapping("/test")
+  @GetMapping("/test")
+  public void test() throws InterruptedException {
+//    redisTemplate.opsForValue().set("K2", "aaa", 2, TimeUnit.SECONDS);
+    System.out.println(redisTemplate.opsForValue().setIfAbsent("K2", "b", 2, TimeUnit.SECONDS));
+    System.out.println(redisTemplate.opsForValue().get("K2"));
+  }
   
+  
+  @PostMapping("/updateMysqlLock")
+  public void updateMysqlLock(@RequestBody MysqlTab mysqlTab) {
+    // update mysql with new entry
+    mysqlRedisController.saveInMysql(mysqlTab);
+    // delete redis lock
+    redisTemplate.opsForValue().set(mysqlTab.getCsKey(), "", 1, TimeUnit.MILLISECONDS);
+    RedisEntry redisEntry = new RedisEntry();
+    BeanUtils.copyProperties(mysqlTab, redisEntry);
+    // update redis entry
+    mysqlRedisController.updateRedis(redisEntry);
+  }
 
 }
