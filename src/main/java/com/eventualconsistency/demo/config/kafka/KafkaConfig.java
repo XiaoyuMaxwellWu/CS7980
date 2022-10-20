@@ -1,5 +1,7 @@
 package com.eventualconsistency.demo.config.kafka;
 
+import com.eventualconsistency.demo.constants.Constant;
+import com.eventualconsistency.demo.vo.ResponseEntry;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -14,6 +16,10 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,27 +31,26 @@ import java.util.Map;
 public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+
     @Bean
     public KafkaTemplate<String, String> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
-    @Bean
-    KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<Integer, String>> kafkaContainerFactory() {
-
-        ConcurrentKafkaListenerContainerFactory<Integer, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
-        factory.getContainerProperties().setPollTimeout(3000);
-        return factory;
-    }
+//    @Bean
+//    KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<Integer, String>> kafkaContainerFactory() {
+//
+//        ConcurrentKafkaListenerContainerFactory<Integer, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+//        factory.setConsumerFactory(consumerFactory());
+//        factory.getContainerProperties().setPollTimeout(3000);
+//        return factory;
+//    }
 
     private ProducerFactory<String, String> producerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
 
-    public ConsumerFactory<Integer, String> consumerFactory() {
-        return new DefaultKafkaConsumerFactory<>(consumerConfigs());
-    }
+
 
     private Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
@@ -63,5 +68,32 @@ public class KafkaConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         return props;
     }
+
+
+    @Bean
+    public ReplyingKafkaTemplate<String, ResponseEntry, ResponseEntry> replyKafkaTemplate(ProducerFactory<String, ResponseEntry> pf, KafkaMessageListenerContainer<String, ResponseEntry> container) {
+        return new ReplyingKafkaTemplate<>(pf, container);
+    }
+
+
+    @Bean
+    public KafkaMessageListenerContainer<String, ResponseEntry> replyContainer(ConsumerFactory<String, ResponseEntry> cf) {
+        ContainerProperties containerProperties = new ContainerProperties(Constant.topic);
+        return new KafkaMessageListenerContainer<>(cf, containerProperties);
+    }
+
+    @Bean
+    public ConsumerFactory<String, ResponseEntry> consumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(consumerConfigs(),new StringDeserializer(),new JsonDeserializer<>(ResponseEntry.class));
+    }
+
+    @Bean
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, ResponseEntry>> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, ResponseEntry> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        factory.setReplyTemplate(kafkaTemplate());
+        return factory;
+    }
+
 }
 
