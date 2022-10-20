@@ -20,9 +20,6 @@ import java.util.Map;
 @Slf4j
 public class MessageQueueController {
     @Autowired
-    private MysqlRepository mysqlRepository;
-
-    @Autowired
     private HashOperations hashOperations;
 
 
@@ -39,7 +36,9 @@ public class MessageQueueController {
         while ((value = hashOperations.get(Constant.KEY, key)) == null) {
             Thread.sleep(100);
         }
-
-        return new ResponseEntry(key, value + "", true);
+        if(!"null".equals(value+"")){
+            return new ResponseEntry(key, value + "", true);
+        }
+        return null;
     }
 }
