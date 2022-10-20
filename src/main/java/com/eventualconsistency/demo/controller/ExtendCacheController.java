@@ -27,7 +27,7 @@ public class ExtendCacheController {
     private MysqlRedisController mysqlRedisController;
 
 
-    @PostMapping("/updateMysql")
+    @PostMapping("/updateMysqlCache")
     public void updateMysql(@RequestBody MysqlTab mysqlTab) throws InterruptedException {
         saveInMysql(mysqlTab);
         setIfAbsent(mysqlTab.getCsKey());

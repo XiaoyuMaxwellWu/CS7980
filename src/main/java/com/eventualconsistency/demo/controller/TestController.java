@@ -19,6 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,7 +49,6 @@ public class TestController {
     }
   }
 
-  
 
   @GetMapping("/invalidation")
   public void hotSpotInvalidation() throws InterruptedException, ExecutionException {
@@ -59,8 +59,8 @@ public class TestController {
     }
     for (int i = 0; i < res.size(); i++) {
       int[] store = res.get(i);
-      log.info(i+"th "+"time:");
-      System.out.println(i+"th "+"time:");
+      log.info(i + "th " + "time:");
+      System.out.println(i + "th " + "time:");
       System.out.println("Num of threads read from Redis: " + store[0]);
       System.out.println("Num of threads read from Mysql: " + store[1]);
       System.out.println(
@@ -68,8 +68,8 @@ public class TestController {
               + " / "
               + store[3]);
     }
-    
-    
+
+
   }
 
 
@@ -192,8 +192,13 @@ public class TestController {
     }
 
   }
-  
-  
-  
-  
+
+  // test inconsistency issue
+  @Autowired
+  private KafkaTemplate<String, String> kafkaTemplate;
+  @GetMapping("/inconsistencyLock")
+  public void testInconsistencyLock() {
+  }
+
+
 }
