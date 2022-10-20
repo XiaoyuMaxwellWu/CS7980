@@ -2,6 +2,7 @@ package com.eventualconsistency.demo.controller;
 
 import com.eventualconsistency.demo.constants.Constant;
 import com.eventualconsistency.demo.dao.MysqlRepository;
+import com.eventualconsistency.demo.kafka.KafkaSender;
 import com.eventualconsistency.demo.vo.ResponseEntry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,15 +25,21 @@ public class MessageQueueController {
     @Autowired
     private HashOperations hashOperations;
 
-    @Autowired
-    private RedisTemplate redisTemplate;
 
-    @PostMapping("/findByKeyLock")
-    public ResponseEntry findByKeyLock(@RequestBody Map<String, Object> requestInfo)
+    @Autowired
+    private KafkaSender kafkaSender;
+
+
+    @PostMapping("/findByKeyMessageQueue")
+    public ResponseEntry findByKeyMessageQueue(@RequestBody Map<String, Object> requestInfo)
             throws InterruptedException {
         String key = requestInfo.get("csKey") + "";
-        String value;
-        Object tryEntry = hashOperations.get(Constant.KEY, key);
-        return null;
+        kafkaSender.send(Constant.topic, key);
+        Object value;
+        while ((value = hashOperations.get(Constant.KEY, key)) == null) {
+            Thread.sleep(100);
+        }
+
+        return new ResponseEntry(key, value + "", true);
     }
 }

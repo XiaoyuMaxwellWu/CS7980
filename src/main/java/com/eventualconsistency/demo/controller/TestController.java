@@ -194,10 +194,9 @@ public class TestController {
   }
 
   // test inconsistency issue
-  @Autowired
-  private KafkaTemplate<String, String> kafkaTemplate;
   @GetMapping("/inconsistencyLock")
   public void testInconsistencyLock() {
+
   }
 
 

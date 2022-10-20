@@ -11,12 +11,12 @@ import lombok.Data;
 @Data
 public class Constant {
 
-  public static final String KEY = "redis_cache";
+    public static final String KEY = "redis_cache";
 
-  public static final String LOCK = "redis_lock";
-  
-  public static final int[] num_threads = new int[]{50, 100, 1000};
-  
-  
-  
+    public static final String LOCK = "redis_lock";
+
+    public static final int[] num_threads = new int[]{50, 100, 1000};
+
+    public static final String topic = "reqToMysql";
+
 }
