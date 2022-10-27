@@ -156,7 +156,7 @@ public class ZRankController {
     // time passed in seconds
     long timePass = System.currentTimeMillis() - redisEntry.getInsertTime() / 1000;
     long expireTime = (position < list.size() / 2 ? 1 : 3) - timePass;
-    redisTemplate.opsForValue().setIfAbsent(key, entryJson, expireTime, TimeUnit.SECONDS);
+    redisTemplate.opsForValue().set(key, entryJson, expireTime, TimeUnit.SECONDS);
     return new ResponseEntry(redisEntry.getCsKey(), redisEntry.getCsValue(), true);
   }
 
