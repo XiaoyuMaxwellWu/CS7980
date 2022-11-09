@@ -64,25 +64,28 @@ public class DistributedLockController {
       return new ResponseEntry(key, value, true);
     }
     String uuid = UUID.randomUUID().toString();
-    // no lock, add a lock 
-    if (redisTemplate.opsForValue().setIfAbsent(key, uuid, 2, TimeUnit.SECONDS)) {
-      log.info("look from Mysql");
-      MysqlTab mysqlTab = mysqlRepository.findByCsKey(key);
-      if (mysqlTab == null) {
-        return null;
+    // has lock, keep waiting
+    while (redisTemplate.opsForValue().get(key) != null) {
+      // if entry is existed in Redis, return
+      if ((tryEntry = hashOperations.get(Constant.KEY, key)) != null) {
+        return new ResponseEntry(key, tryEntry.toString(), true);
       }
-      Object tryLock = redisTemplate.opsForValue().get(key);
-      // update redis only if the key has lock with the same request ID 
-      if (tryLock != null && uuid.equals(tryLock.toString())) {
-        hashOperations.put(Constant.KEY, key, mysqlTab.getCsValue());
-      }
-      return new ResponseEntry(key, mysqlTab.getCsValue(), false);
-    }
-    // has lock, keep waiting until there is a value in redis
-    while ((tryEntry = hashOperations.get(Constant.KEY, key)) == null) {
       Thread.sleep(100);
     }
-    return new ResponseEntry(key, tryEntry.toString(), true);
+    // no lock, add a lock 
+    redisTemplate.opsForValue().set(key, uuid, 2, TimeUnit.SECONDS);
+    log.info("look from Mysql");
+    MysqlTab mysqlTab = mysqlRepository.findByCsKey(key);
+    if (mysqlTab == null) {
+      return null;
+    }
+    Object tryLock = redisTemplate.opsForValue().get(key);
+    // update redis only if the key has lock with the same request ID 
+    if (tryLock != null && uuid.equals(tryLock.toString())) {
+      hashOperations.put(Constant.KEY, key, mysqlTab.getCsValue());
+    }
+    return new ResponseEntry(key, mysqlTab.getCsValue(), false);
+
 
   }
 
