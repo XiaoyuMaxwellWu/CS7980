@@ -18,7 +18,7 @@ public class KafkaReceiver {
     @Autowired
     private HashOperations hashOperations;
 
-    @KafkaListener(topics = "reqToMysql", containerFactory = "kafkaContainerFactory")
+    @KafkaListener(topics = "reqToMysql", containerFactory = "kafkaContainerFactory", autoStartup = "${kafka.start}")
     public void receive(String key) throws InterruptedException {
         HashMap<String, Object> requestInfo = new HashMap<>();
         requestInfo.put("csKey", key);

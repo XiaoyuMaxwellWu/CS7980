@@ -18,27 +18,33 @@ import java.util.Map;
 @RestController
 @RequestMapping("/capstone")
 @Slf4j
-public class MessageQueueController {
-    @Autowired
-    private HashOperations hashOperations;
+public class MessageQueueController implements Controller {
+
+  @Autowired
+  private HashOperations hashOperations;
 
 
-    @Autowired
-    private KafkaSender kafkaSender;
+  @Autowired
+  private KafkaSender kafkaSender;
 
 
-    @PostMapping("/findByKeyMessageQueue")
-    public ResponseEntry findByKeyMessageQueue(@RequestBody Map<String, Object> requestInfo)
-            throws InterruptedException {
-        String key = requestInfo.get("csKey") + "";
-        kafkaSender.send(Constant.topic, key);
-        Object value;
-        while ((value = hashOperations.get(Constant.KEY, key)) == null) {
-            Thread.sleep(100);
-        }
-        if(!"null".equals(value+"")){
-            return new ResponseEntry(key, value + "", true);
-        }
-        return null;
+  @PostMapping("/findByKeyMessageQueue")
+  public ResponseEntry findByKeyMessageQueue(@RequestBody Map<String, Object> requestInfo)
+      throws InterruptedException {
+    String key = requestInfo.get("csKey") + "";
+    kafkaSender.send(Constant.topic, key);
+    Object value;
+    while ((value = hashOperations.get(Constant.KEY, key)) == null) {
+      Thread.sleep(100);
     }
+    if (!"null".equals(value + "")) {
+      return new ResponseEntry(key, value + "", true);
+    }
+    return null;
+  }
+
+  @Override
+  public ResponseEntry findByKey(Map<String, Object> requestInfo) throws Exception {
+    return findByKeyMessageQueue(requestInfo);
+  }
 }

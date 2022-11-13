@@ -47,7 +47,7 @@ public class TestController {
   private DistributedLockController distributedLockController;
   private static MultiThread[] instances = new MultiThread[Constant.num_threads.length];
 
-  //50, 100, 1000
+  //50, 100, 1000, 10,000
   public TestController() {
     for (int i = 0; i < Constant.num_threads.length; i++) {
       instances[i] = MultiThread.getInstance(Constant.num_threads[i]);
@@ -199,39 +199,39 @@ public class TestController {
   }
 
   // test inconsistency issue
-  @GetMapping("/inconsistencyLock")
-  public void testInconsistencyLock() throws InterruptedException, ExecutionException {
-    int whichExecutor = 0;
-    ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
-    HashMap<String, Object> requestInfo = new HashMap<>();
-    requestInfo.put("csKey", "K1");
-    ResponseEntry exactEntry = distributedLockController.findByKeyLock(requestInfo);
-    List<Future<Boolean[]>> results = new ArrayList<>();
-    // execute reading from redis or mysql
-    mysqlRedisController.clearAll();
-    String uuid2 = UUID.randomUUID().toString();
-    MysqlTab mysqlTab2 = new MysqlTab("K1", uuid2);
-    mysqlRedisController.addMysql(mysqlTab2);
-    for (int i = 0; i < Constant.num_threads[whichExecutor]; i++) {
-      Future<Boolean[]> submit = poolExecutor.submit(() -> {
-        Boolean[] res = new Boolean[2];
-        ResponseEntry entry = messageQueueController.findByKeyMessageQueue(requestInfo);
-        res[0] = entry.getIsReadFromRedis();
-        res[1] = entry.getCsValue().equals(exactEntry.getCsValue()) ? true : false;
-        return res;
-      });
-      results.add(submit);
-    }
-
-    int mysqlCnt = 0, redisCnt = 0;
-    for (Future<Boolean[]> result : results) {
-      Boolean[] res = result.get();
-      mysqlCnt += res[0] ? 0 : 1;
-      redisCnt += res[0] ? 1 : 0;
-    }
-    log.info("num of requests to mysql: " + mysqlCnt);
-    log.info("num of requests to redis: " + redisCnt);
-  }
+//  @GetMapping("/inconsistencyLock")
+//  public void testInconsistencyLock() throws InterruptedException, ExecutionException {
+//    int whichExecutor = 0;
+//    ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
+//    HashMap<String, Object> requestInfo = new HashMap<>();
+//    requestInfo.put("csKey", "K1");
+//    ResponseEntry exactEntry = distributedLockController.findByKeyLock(requestInfo);
+//    List<Future<Boolean[]>> results = new ArrayList<>();
+//    // execute reading from redis or mysql
+//    mysqlRedisController.clearAll();
+//    String uuid2 = UUID.randomUUID().toString();
+//    MysqlTab mysqlTab2 = new MysqlTab("K1", uuid2);
+//    mysqlRedisController.addMysql(mysqlTab2);
+//    for (int i = 0; i < Constant.num_threads[whichExecutor]; i++) {
+//      Future<Boolean[]> submit = poolExecutor.submit(() -> {
+//        Boolean[] res = new Boolean[2];
+//        ResponseEntry entry = messageQueueController.findByKeyMessageQueue(requestInfo);
+//        res[0] = entry.getIsReadFromRedis();
+//        res[1] = entry.getCsValue().equals(exactEntry.getCsValue()) ? true : false;
+//        return res;
+//      });
+//      results.add(submit);
+//    }
+//
+//    int mysqlCnt = 0, redisCnt = 0;
+//    for (Future<Boolean[]> result : results) {
+//      Boolean[] res = result.get();
+//      mysqlCnt += res[0] ? 0 : 1;
+//      redisCnt += res[0] ? 1 : 0;
+//    }
+//    log.info("num of requests to mysql: " + mysqlCnt);
+//    log.info("num of requests to redis: " + redisCnt);
+//  }
 
   @GetMapping("/invalidationMessageQueue")
   public void testInvalidationMessageQueue() throws InterruptedException, ExecutionException {

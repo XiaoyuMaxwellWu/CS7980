@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/capstone")
 @Slf4j
-public class MysqlRedisController {
+public class MysqlRedisController implements Controller{
 
   @Autowired
   private MysqlRepository mysqlRepository;

@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/capstone")
 @Slf4j
-public class DistributedLockController {
+public class DistributedLockController implements Controller {
 
   @Autowired
   private MysqlRepository mysqlRepository;
@@ -52,8 +52,13 @@ public class DistributedLockController {
   // (2) 6. no entry, has lock, sleep 100 ms multiple times till redis has the entry 
   // 7. mysql updates, and then redis lock deletes, and then updates redis
   @PostMapping("/findByKeyLock")
-  public ResponseEntry findByKeyLock(@RequestBody Map<String, Object> requestInfo)
+  @Override
+  public ResponseEntry findByKey(@RequestBody Map<String, Object> requestInfo)
       throws InterruptedException {
+    if (1 == 1) {
+      log.info("hhhh");
+      return null;
+    }
     String key = requestInfo.get("csKey") + "";
     String value;
     Object tryEntry = hashOperations.get(Constant.KEY, key);
@@ -100,5 +105,5 @@ public class DistributedLockController {
     // update redis entry
     mysqlRedisController.updateRedis(redisEntry);
   }
-
 }
+ 

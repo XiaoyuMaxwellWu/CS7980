@@ -33,7 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/capstone")
 @Slf4j
-public class ZRankController {
+public class ZRankController implements Controller {
 
   @Autowired
   private MysqlRepository mysqlRepository;
@@ -119,9 +119,9 @@ public class ZRankController {
   }
 
   @PostMapping("/zrankGet")
-  public ResponseEntry zrankGet(@RequestBody Map<String, String> requestInfo)
+  public ResponseEntry zrankGet(@RequestBody Map<String, Object> requestInfo)
       throws IOException {
-    String key = requestInfo.get("csKey");
+    String key = requestInfo.get("csKey")+"";
     List<ZRankEntry> list = getClientList();
     ZRankEntry redisEntry = null;
     for (ZRankEntry entry : list) {
@@ -161,6 +161,10 @@ public class ZRankController {
   }
 
 
+  @Override
+  public ResponseEntry findByKey(Map<String, Object> requestInfo) throws Exception {
+    return zrankGet(requestInfo);
+  }
 }
 
 
