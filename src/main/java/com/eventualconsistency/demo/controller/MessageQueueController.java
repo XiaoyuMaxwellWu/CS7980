@@ -2,6 +2,7 @@ package com.eventualconsistency.demo.controller;
 
 import com.eventualconsistency.demo.constants.Constant;
 import com.eventualconsistency.demo.dao.MysqlRepository;
+import com.eventualconsistency.demo.entity.MysqlTab;
 import com.eventualconsistency.demo.kafka.KafkaSender;
 import com.eventualconsistency.demo.vo.ResponseEntry;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/capstone")
 @Slf4j
-public class MessageQueueController implements Controller {
+public class MessageQueueController extends Controller {
 
   @Autowired
   private HashOperations hashOperations;

@@ -62,22 +62,15 @@ public class PerformanceController {
     ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
     HashMap<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("csKey", "K1");
-    controller.findByKey(requestInfo);
-    ResponseEntry exactEntry = mysqlRedisController.findByKey(requestInfo);
-    ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
-    ReadLock readLock = reentrantReadWriteLock.readLock();
-    WriteLock writeLock = reentrantReadWriteLock.writeLock();
+    ResponseEntry exactEntry = controller.findByKey(requestInfo);
     List<Future<Boolean[]>> results = new ArrayList<>();
     new Thread(() -> {
       try {
         Thread.sleep(100);
         String uuid = UUID.randomUUID().toString();
         MysqlTab mysqlTab = new MysqlTab("K1", uuid);
-        mysqlRedisController.saveInMysql(mysqlTab);
-        writeLock.lock();
+        controller.updateMySQL(mysqlTab);
         exactEntry.setCsValue(uuid);
-        writeLock.unlock();
-        mysqlRedisController.deleteInRedis(mysqlTab.getCsKey());
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
@@ -92,6 +85,5 @@ public class PerformanceController {
       results.add(submit);
     }
   }
-
 
 }

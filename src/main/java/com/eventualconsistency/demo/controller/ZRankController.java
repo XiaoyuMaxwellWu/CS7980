@@ -33,7 +33,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/capstone")
 @Slf4j
-public class ZRankController implements Controller {
+public class ZRankController extends Controller {
 
   @Autowired
   private MysqlRepository mysqlRepository;

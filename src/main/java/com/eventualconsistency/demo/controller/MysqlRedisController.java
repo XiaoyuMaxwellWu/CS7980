@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/capstone")
 @Slf4j
-public class MysqlRedisController implements Controller{
+public class MysqlRedisController{
 
   @Autowired
   private MysqlRepository mysqlRepository;
@@ -38,29 +38,7 @@ public class MysqlRedisController implements Controller{
   private HashOperations hashOperations;
 
 
-  // find by key, will first look for Redis, if not found, look for MySQL
-  @PostMapping("/findByKey")
-  public ResponseEntry findByKey(@RequestBody Map<String, Object> requestInfo)
-      throws InterruptedException {
-    String key = requestInfo.get("csKey") + "";
-    String value;
-    Object tryGet = hashOperations.get(Constant.KEY, key);
-    if (tryGet == null) {
-      log.info("look from Mysql");
-      MysqlTab mysqlTab = mysqlRepository.findByCsKey(key);
-      if (mysqlTab == null) {
-        return null;
-      }
-      value = mysqlTab.getCsValue();
-      Thread.sleep(500);
-      hashOperations.put(Constant.KEY, key, value);
-      return new ResponseEntry(key, value, false);
-    } else {
-      value = tryGet.toString();
-      log.info("look from Redis");
-      return new ResponseEntry(key, value, true);
-    }
-  }
+ 
 
   @PostMapping("/findByKeyLongerTime")
   public ResponseEntry findByKeyLongerTime(@RequestBody Map<String, Object> requestInfo)

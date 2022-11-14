@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/capstone")
 @Slf4j
-public class DistributedLockController implements Controller {
+public class DistributedLockController extends Controller {
 
   @Autowired
   private MysqlRepository mysqlRepository;
@@ -55,10 +55,6 @@ public class DistributedLockController implements Controller {
   @Override
   public ResponseEntry findByKey(@RequestBody Map<String, Object> requestInfo)
       throws InterruptedException {
-    if (1 == 1) {
-      log.info("hhhh");
-      return null;
-    }
     String key = requestInfo.get("csKey") + "";
     String value;
     Object tryEntry = hashOperations.get(Constant.KEY, key);
@@ -94,6 +90,11 @@ public class DistributedLockController implements Controller {
 
   }
 
+  @Override
+  public void updateMySQL(MysqlTab mysqlTab) {
+    updateMysqlLock(mysqlTab);
+  }
+
   @PostMapping("/updateMysqlLock")
   public void updateMysqlLock(@RequestBody MysqlTab mysqlTab) {
     // update mysql with new entry
@@ -105,5 +106,6 @@ public class DistributedLockController implements Controller {
     // update redis entry
     mysqlRedisController.updateRedis(redisEntry);
   }
+  
 }
  

@@ -13,19 +13,18 @@ import java.util.HashMap;
 @Slf4j
 @Component
 public class KafkaReceiver {
-    @Autowired
-    private MysqlRedisController mysqlRedisController;
-    @Autowired
-    private HashOperations hashOperations;
 
-    @KafkaListener(topics = "reqToMysql", containerFactory = "kafkaContainerFactory", autoStartup = "${kafka.start}")
-    public void receive(String key) throws InterruptedException {
-        HashMap<String, Object> requestInfo = new HashMap<>();
-        requestInfo.put("csKey", key);
-        if (null == mysqlRedisController.findByKey(requestInfo)) {
-            hashOperations.put(Constant.KEY, key, "null");
-        }
+  @Autowired
+  private HashOperations hashOperations;
+
+  @KafkaListener(topics = "reqToMysql", containerFactory = "kafkaContainerFactory", autoStartup = "${kafka.start}")
+  public void receive(String key) throws InterruptedException {
+    HashMap<String, Object> requestInfo = new HashMap<>();
+    requestInfo.put("csKey", key);
+    if (null == hashOperations.get(Constant.KEY, key)) {
+      hashOperations.put(Constant.KEY, key, "null");
     }
+  }
 
 
 }

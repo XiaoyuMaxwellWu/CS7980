@@ -42,6 +42,8 @@ public class TestController {
   @Autowired
   public MysqlRedisController mysqlRedisController;
   @Autowired
+  private BaseLineController baseLineController;
+  @Autowired
   public MessageQueueController messageQueueController;
   @Autowired
   private DistributedLockController distributedLockController;
@@ -83,7 +85,7 @@ public class TestController {
     ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
     HashMap<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("csKey", "K1");
-    ResponseEntry exactEntry = mysqlRedisController.findByKey(requestInfo);
+    ResponseEntry exactEntry = baseLineController.findByKey(requestInfo);
     ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
     ReadLock readLock = reentrantReadWriteLock.readLock();
     WriteLock writeLock = reentrantReadWriteLock.writeLock();
@@ -93,7 +95,7 @@ public class TestController {
       Future<Boolean[]> submit = poolExecutor.submit(() -> {
         Thread.sleep(new Random().nextInt(500));
         Boolean[] res = new Boolean[2];
-        ResponseEntry entry = mysqlRedisController.findByKey(requestInfo);
+        ResponseEntry entry = baseLineController.findByKey(requestInfo);
         res[0] = entry.getIsReadFromRedis();
         readLock.lock();
         res[1] = entry.getCsValue().equals(exactEntry.getCsValue()) ? true : false;
@@ -143,7 +145,7 @@ public class TestController {
     ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
     HashMap<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("csKey", "K1");
-    ResponseEntry exactEntry = mysqlRedisController.findByKey(requestInfo);
+    ResponseEntry exactEntry = baseLineController.findByKey(requestInfo);
     ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
     ReadLock readLock = reentrantReadWriteLock.readLock();
     WriteLock writeLock = reentrantReadWriteLock.writeLock();

@@ -1,5 +1,6 @@
 package com.eventualconsistency.demo.constants;
 
+import com.eventualconsistency.demo.controller.BaseLineController;
 import com.eventualconsistency.demo.controller.Controller;
 import com.eventualconsistency.demo.controller.DistributedLockController;
 import com.eventualconsistency.demo.controller.MessageQueueController;
@@ -39,12 +40,12 @@ public class Constant {
   private DistributedLockController distributedLockController;
 
   @Autowired
-  private MysqlRedisController mysqlRedisController;
+  private BaseLineController baseLineController;
 
   @PostConstruct
   public void init() {
     Controller[] controllers = {zRankController, messageQueueController,
-        distributedLockController, mysqlRedisController};
+        distributedLockController, baseLineController};
     for (int i = 0; i < EnumSet.allOf(Method.class).size(); i++) {
       Method.values()[i].setController(controllers[i]);
     }
