@@ -7,6 +7,7 @@ import com.eventualconsistency.demo.utils.MultiThread;
 import com.eventualconsistency.demo.vo.ResponseEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -40,12 +41,12 @@ public class PerformanceController {
   @Autowired
   private MysqlRedisController mysqlRedisController;
 
-  private static MultiThread[] instances = new MultiThread[Constant.num_threads.length];
+  private static MultiThread[] instances = new MultiThread[Constant.NUM_THREADS.length];
 
   //50, 100, 1000, 10,000
   public PerformanceController() {
-    for (int i = 0; i < Constant.num_threads.length; i++) {
-      instances[i] = MultiThread.getInstance(Constant.num_threads[i]);
+    for (int i = 0; i < Constant.NUM_THREADS.length; i++) {
+      instances[i] = MultiThread.getInstance(Constant.NUM_THREADS[i]);
     }
   }
 
@@ -57,13 +58,12 @@ public class PerformanceController {
   public void ResponseTime(@PathVariable int method) throws Exception {
     Controller controller = Arrays.stream(Method.values())
         .filter(m -> m.getMethodCode() == method).findFirst().orElse(null).getController();
-    int whichExecutor = 3;
+    int whichExecutor = 1;
     Random random = new Random();
     ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
     HashMap<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("csKey", "K1");
     ResponseEntry exactEntry = controller.findByKey(requestInfo);
-    List<Future<Boolean[]>> results = new ArrayList<>();
     new Thread(() -> {
       try {
         Thread.sleep(100);
@@ -75,15 +75,28 @@ public class PerformanceController {
         e.printStackTrace();
       }
     }).start();
-    for (int i = 0; i < Constant.num_threads[whichExecutor]; i++) {
-      Future<Boolean[]> submit = poolExecutor.submit(() -> {
+    ArrayList<Future<Long>> futures = new ArrayList<>();
+    for (int i = 0; i < Constant.NUM_THREADS[whichExecutor]; i++) {
+      Future<Long> submit = poolExecutor.submit(() -> {
         Thread.sleep(random.nextInt(1000));
-        Boolean[] res = new Boolean[2];
-        ResponseEntry entry = controller.findByKey(requestInfo);
-        return res;
+        long startTIme = System.currentTimeMillis();
+        controller.findByKey(requestInfo);
+        long end = System.currentTimeMillis();
+        return (end - startTIme);
       });
-      results.add(submit);
+      futures.add(submit);
     }
+    ArrayList<Long> results = new ArrayList<>();
+    for (int i = 0; i < futures.size(); i++) {
+      results.add(futures.get(i).get());
+    }
+    Collections.sort(results);
+    results.get((int) Math.ceil(99 / 100.0 * results.size()));
+
+  }
+
+  private long calculatePercentile() {
+    return 0;
   }
 
 }

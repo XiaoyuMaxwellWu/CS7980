@@ -26,10 +26,11 @@ public class Constant {
 
   public static final String LOCK = "redis_lock";
 
-  public static final int[] num_threads = new int[]{50, 100, 1000, 10000};
+  public static final int[] NUM_THREADS = new int[]{50, 100, 1000, 10000};
 
-  public static final String topic = "reqToMysql";
+  public static final String TOPIC = "reqToMysql";
 
+  
   @Autowired
   private ZRankController zRankController;
 
