@@ -23,7 +23,7 @@ public class MessageQueueController extends Controller {
 
   @Autowired
   private HashOperations hashOperations;
-
+ 
 
   @Autowired
   private KafkaSender kafkaSender;
