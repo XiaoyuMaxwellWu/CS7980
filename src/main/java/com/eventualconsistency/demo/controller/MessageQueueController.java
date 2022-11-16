@@ -5,6 +5,7 @@ import com.eventualconsistency.demo.dao.MysqlRepository;
 import com.eventualconsistency.demo.entity.MysqlTab;
 import com.eventualconsistency.demo.kafka.KafkaSender;
 import com.eventualconsistency.demo.vo.ResponseEntry;
+import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
@@ -41,12 +42,18 @@ public class MessageQueueController extends Controller {
     if (!"null".equals(value + "")) {
       return new ResponseEntry(key, value + "", true);
     }
-    return null; 
+    while (true){
+      if(isReadRedisMap.get(1)!=0){
+        return new ResponseEntry(key, value + "", isReadRedisMap.get(1) == 1 ? true : false);
+      }
+      Thread.sleep(200);
+    }
   }
 
   public static int mysqlCnt = 0;
   public static int redisCnt = 0;
-
+  public static Map<Integer, Integer> isReadRedisMap = new HashMap<>();
+  // key: request id; value: 0 no result, 1 read from redis, 2 mysql
 
   @Override
   public ResponseEntry findByKey(Map<String, Object> requestInfo) throws Exception {

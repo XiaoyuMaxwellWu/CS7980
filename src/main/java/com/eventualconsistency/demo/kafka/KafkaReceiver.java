@@ -30,8 +30,10 @@ public class KafkaReceiver {
       MysqlTab mysqlTab = mysqlRepository.findByCsKey(key);
       hashOperations.put(Constant.KEY, key, mysqlTab.getCsValue());
       MessageQueueController.mysqlCnt++;
+      MessageQueueController.isReadRedisMap.put(1, 2);
     } else {
       MessageQueueController.redisCnt++;
+      MessageQueueController.isReadRedisMap.put(1, 1);
     }
   }
 
