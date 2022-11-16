@@ -1,6 +1,7 @@
 package com.eventualconsistency.demo.kafka;
 
 import com.eventualconsistency.demo.constants.Constant;
+import com.eventualconsistency.demo.controller.MessageQueueController;
 import com.eventualconsistency.demo.controller.MysqlRedisController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,9 @@ public class KafkaReceiver {
     HashMap<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("csKey", key);
     if (null == hashOperations.get(Constant.KEY, key)) {
+      
       hashOperations.put(Constant.KEY, key, "null");
+      MessageQueueController.mysqlCnt++;
     }
   }
 

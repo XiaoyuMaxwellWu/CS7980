@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/capstone")
 @Slf4j
 public class BaseLineController extends Controller {
+  @Autowired
   private MysqlRepository mysqlRepository;
 
   @Autowired

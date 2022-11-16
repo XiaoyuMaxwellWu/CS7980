@@ -10,15 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-import java.util.stream.Stream;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
@@ -86,10 +82,10 @@ public class PerformanceController {
     for (int i = 0; i < Constant.NUM_THREADS[whichExecutor]; i++) {
       Future<Long> submit = poolExecutor.submit(() -> {
         Thread.sleep(random.nextInt(1000));
-        long startTIme = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         controller.findByKey(requestInfo);
         long end = System.currentTimeMillis();
-        return (end - startTIme);
+        return (end - startTime);
       });
       futures.add(submit);
     }
@@ -141,4 +137,49 @@ public class PerformanceController {
 
   }
 
+  @GetMapping("/cacheBreakdownRate/{method}")
+  public void cacheBreakdownRate(@PathVariable int method) throws Exception{
+    Controller controller = Arrays.stream(Method.values())
+            .filter(m -> m.getMethodCode() == method).findFirst().orElse(null).getController();
+    int whichExecutor = 1;
+    Random random = new Random();
+    ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
+    HashMap<String, Object> requestInfo = new HashMap<>();
+    requestInfo.put("csKey", "K1");
+    ResponseEntry exactEntry = controller.findByKey(requestInfo);
+    new Thread(() -> {
+      try {
+        Thread.sleep(100);
+        String uuid = UUID.randomUUID().toString();
+        MysqlTab mysqlTab = new MysqlTab("K1", uuid);
+        controller.updateMySQL(mysqlTab);
+        exactEntry.setCsValue(uuid);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }).start();
+    ArrayList<Future<Boolean[]>> futures = new ArrayList<>();
+    for (int i = 0; i < Constant.NUM_THREADS[whichExecutor]; i++) {
+      Future<Boolean[]> submit = poolExecutor.submit(() -> {
+        Thread.sleep(random.nextInt(1000));
+        Boolean[] res = new Boolean[2];
+        ResponseEntry entry = controller.findByKey(requestInfo);
+        res[0] = entry.getIsReadFromRedis();
+        res[1] = entry.getCsValue().equals(exactEntry.getCsValue()) ? true : false;
+        return res;
+      });
+      futures.add(submit);
+    }
+    double mysqlCnt = 0, redisCnt = 0;
+    double rate = 0;
+    for (Future<Boolean[]> future : futures) {
+      Boolean[] res = future.get();
+      mysqlCnt += res[0] ? 0 : 1;
+      redisCnt += res[0] ? 1 : 0;
+      rate = mysqlCnt / (mysqlCnt + redisCnt);
+    }
+    log.info("num of requests to mysql: " + mysqlCnt);
+    log.info("num of requests to redis: " + redisCnt);
+    log.info("Cache breakdown rate: " + rate);
+  }
 }
