@@ -44,6 +44,10 @@ public class MessageQueueController extends Controller {
     return null; 
   }
 
+  public static int mysqlCnt = 0;
+  public static int redisCnt = 0;
+
+
   @Override
   public ResponseEntry findByKey(Map<String, Object> requestInfo) throws Exception {
     return findByKeyMessageQueue(requestInfo);
