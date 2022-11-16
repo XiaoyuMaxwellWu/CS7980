@@ -41,7 +41,7 @@ public class MessageQueueController extends Controller {
     if (!"null".equals(value + "")) {
       return new ResponseEntry(key, value + "", true);
     }
-    return null;
+    return null; 
   }
 
   @Override
