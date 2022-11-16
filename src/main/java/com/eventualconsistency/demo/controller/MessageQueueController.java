@@ -33,7 +33,7 @@ public class MessageQueueController extends Controller {
   public ResponseEntry findByKeyMessageQueue(@RequestBody Map<String, Object> requestInfo)
       throws InterruptedException {
     String key = requestInfo.get("csKey") + "";
-    kafkaSender.send(Constant.topic, key);
+    kafkaSender.send(Constant.TOPIC, key);
     Object value;
     while ((value = hashOperations.get(Constant.KEY, key)) == null) {
       Thread.sleep(100);
