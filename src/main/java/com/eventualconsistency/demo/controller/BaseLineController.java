@@ -44,7 +44,6 @@ public class BaseLineController extends Controller {
         return null;
       }
       value = mysqlTab.getCsValue();
-      Thread.sleep(500);
       hashOperations.put(Constant.KEY, key, value);
       return new ResponseEntry(key, value, false);
     } else {
