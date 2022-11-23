@@ -21,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
@@ -69,13 +66,6 @@ public class ZRankController extends Controller {
   static final String DATASOURCE_PASS = "root";
   static final int DATASOURCE_SELECT = 1;
 
-  public void RedisSortedSet() {
-    //基本配置
-    jedis = new Jedis(DATASOURCE_URL, DATASOURCE_SORT);
-    jedis.auth(DATASOURCE_PASS);
-    jedis.select(DATASOURCE_SELECT);
-  }
-
 
   @PostMapping("/zsetadd")
   public void ZAdd() {
@@ -118,7 +108,7 @@ public class ZRankController extends Controller {
     return list;
   }
 
-  @PostMapping("/zrankGet")
+  @GetMapping("/zrankGet")
   public ResponseEntry zrankGet(@RequestBody Map<String, Object> requestInfo)
       throws IOException {
     String key = requestInfo.get("csKey")+"";

@@ -159,6 +159,7 @@ public class PerformanceController {
     }
     long end = System.currentTimeMillis();
     long time = (end - startTIme) / 1000;
+    log.info("Average time is" + time);
 
   }
 
