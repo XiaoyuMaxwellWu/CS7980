@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class Constant {
+  public static final String ZRANK_KEY = "zrank_redis_cache";
 
   public static final String KEY = "redis_cache";
 
