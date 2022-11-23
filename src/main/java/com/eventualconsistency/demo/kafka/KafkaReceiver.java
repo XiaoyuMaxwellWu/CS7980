@@ -21,19 +21,26 @@ public class KafkaReceiver {
   private HashOperations hashOperations;
   @Autowired
   private MysqlRepository mysqlRepository;
-
+  
+  
   @KafkaListener(topics = "reqToMysql", containerFactory = "kafkaContainerFactory", autoStartup = "${kafka.start}")
   public void receive(String key) throws InterruptedException {
     HashMap<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("csKey", key);
     if (null == hashOperations.get(Constant.KEY, key)) {
       MysqlTab mysqlTab = mysqlRepository.findByCsKey(key);
-      hashOperations.put(Constant.KEY, key, mysqlTab.getCsValue());
-      MessageQueueController.mysqlCnt++;
-      MessageQueueController.isReadRedisMap.put(1, 2);
+      if(null == mysqlTab){
+        hashOperations.put(Constant.KEY, key, "null");
+      } else {
+        hashOperations.put(Constant.KEY, key, mysqlTab.getCsValue());
+      }
+      synchronized (MessageQueueController.class){
+        MessageQueueController.mysqlCnt++;
+      }
     } else {
-      MessageQueueController.redisCnt++;
-      MessageQueueController.isReadRedisMap.put(1, 1);
+      synchronized (MessageQueueController.class){
+        MessageQueueController.redisCnt++;
+      }
     }
   }
 
