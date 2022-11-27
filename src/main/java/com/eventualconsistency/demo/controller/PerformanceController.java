@@ -68,8 +68,8 @@ public class PerformanceController {
 
   @GetMapping("/responseTime")
   public void testMultiResponseTime() throws Exception {
-    Map<Double, Double>[] dataSet = new Map[]{trt(3), trt(4)};
-    String[] types = new String[]{"Distributed Lock", "Baseline"};
+    Map<Double, Double>[] dataSet = new Map[]{trt(1),trt(2),trt(3), trt(4)};
+    String[] types = new String[]{"Zset Ranking","MessageQueue","Distributed Lock", "Baseline"};
     Chart.drawLineChart("Response Time", "Response Time", "xth percentile",
         "Response Time in milliseconds", dataSet, types);
     Scanner in = new Scanner(System.in);
@@ -85,6 +85,7 @@ public class PerformanceController {
     ThreadPoolExecutor poolExecutor = instances[whichExecutor].getPoolExecutor();
     HashMap<String, Object> requestInfo = new HashMap<>();
     requestInfo.put("csKey", "K1");
+    mysqlRedisController.clearAll();
     ResponseEntry exactEntry = controller.findByKey(requestInfo);
     new Thread(() -> {
       try {

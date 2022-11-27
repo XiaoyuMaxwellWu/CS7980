@@ -137,7 +137,7 @@ public class ZRankController extends Controller {
       HashMap<String, Object> map = new HashMap<>();
       map.put("csKey", key);
       MysqlTab mysqlTab = mysqlRepository.findByCsKey(key);
-      if(mysqlTab == null){
+      if (mysqlTab == null) {
         return new ResponseEntry(key, null, false);
       }
       ZRankEntry zRankEntry = new ZRankEntry(mysqlTab.getCsKey(), mysqlTab.getCsValue(),
@@ -161,7 +161,7 @@ public class ZRankController extends Controller {
     // time passed in seconds
     long timePass = (System.currentTimeMillis() - redisEntry.getInsertTime()) / 1000;
     long expireTime = (position < list.size() / 2 ? 1 : 3) * 1000 - timePass;
-    set(key, entryJson, (int) expireTime);
+    set(key, entryJson, expireTime < 0 ? 0 : (int) expireTime);
     return new ResponseEntry(redisEntry.getCsKey(), redisEntry.getCsValue(), true);
 
   }
