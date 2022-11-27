@@ -56,55 +56,27 @@ public class ZRankController extends Controller {
   }
 
   public void set(String key, String value, int time) throws InterruptedException {
-    redisTemplate.opsForHash().put(Constant.ZRANK_KEY, key, value);
-    Thread.sleep(time);
-    mysqlRedisController.deleteInRedis(key);
+    redisTemplate.opsForHash().put(Constant.KEY, key, value);
+    new Thread(() -> {
+      try {
+        Thread.sleep(time);
+        mysqlRedisController.deleteInRedis(key);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }).start();
+
   }
 
-  Jedis jedis = null;
-  static final String DATASOURCE_URL = "jdbc:mysql://localhost:3306/CS7980";
-  static final int DATASOURCE_SORT = 6379;
-  static final String DATASOURCE_PASS = "root";
-  static final int DATASOURCE_SELECT = 1;
-
-
-  @PostMapping("/zsetadd")
-  public void ZAdd() {
-    jedis.zadd("sortedSet", 10, "value:10");
-    Map<String, Double> map = new HashMap<String, Double>();
-    for (int i = 0; i <= 10; i++) {
-      map.put("value:" + i, Double.valueOf(i));
-    }
-    jedis.zadd("sortedSet", map);
-  }
-
-  @PostMapping("/zsetcount")
-  public void ZCount() {
-    Map<String, Double> map = new HashMap<String, Double>();
-    for (int i = 0; i < 10; i++) {
-      map.put("value:" + i, Double.valueOf(i));
-    }
-    jedis.zadd("sortedSet", map);
-    Long count = jedis.zcount("sortedSet", 0, 999);
-  }
-
-  @PostMapping("/zsetrank")
-  public void ZRank() {
-    Map<String, Double> map = new HashMap<String, Double>();
-    for (int i = 0; i < 10; i++) {
-      map.put("value:" + i, Double.valueOf(i));
-    }
-    jedis.zadd("sortedSet", map);
-    jedis.zremrangeByRank("sortedSet", 1, 999);
-  }
+  
 
   private List<ZRankEntry> getClientList() throws IOException {
     List<ZRankEntry> list = new ArrayList<>();
     ObjectMapper objectMapper = new ObjectMapper();
     try {
-      for (Object o : redisTemplate.opsForHash().entries(Constant.ZRANK_KEY).keySet()) {
+      for (Object o : redisTemplate.opsForHash().entries(Constant.KEY).keySet()) {
         ZRankEntry zRankEntry = objectMapper
-            .readValue(redisTemplate.opsForHash().get(Constant.ZRANK_KEY, o + "") + "",
+            .readValue(redisTemplate.opsForHash().get(Constant.KEY, o + "") + "",
                 ZRankEntry.class);
         list.add(zRankEntry);
       }
@@ -127,7 +99,7 @@ public class ZRankController extends Controller {
     List<ZRankEntry> list = getClientList();
     ZRankEntry redisEntry = null;
     for (ZRankEntry entry : list) {
-      if (entry.getCsKey().equals(key)) {
+      if (entry != null && entry.getCsKey().equals(key)) {
         redisEntry = entry;
         break;
       }
@@ -143,10 +115,11 @@ public class ZRankController extends Controller {
       ZRankEntry zRankEntry = new ZRankEntry(mysqlTab.getCsKey(), mysqlTab.getCsValue(),
           System.currentTimeMillis(), 1);
       String entryJson = new ObjectMapper().writeValueAsString(zRankEntry);
-      set(key, entryJson, 1);
+      set(key, entryJson, 500);
       return new ResponseEntry(mysqlTab.getCsKey(), mysqlTab.getCsValue(), false);
     }
     // redis exists
+
     redisEntry.setHitCount(redisEntry.getHitCount() + 1);
     // sort by hit count
     Collections.sort(list, Comparator.comparingInt(ZRankEntry::getHitCount));
@@ -160,7 +133,7 @@ public class ZRankController extends Controller {
     String entryJson = new ObjectMapper().writeValueAsString(redisEntry);
     // time passed in seconds
     long timePass = (System.currentTimeMillis() - redisEntry.getInsertTime()) / 1000;
-    long expireTime = (position < list.size() / 2 ? 1 : 3) * 1000 - timePass;
+    long expireTime = (position < list.size() / 2 ? 501 : 800) - timePass;
     set(key, entryJson, expireTime < 0 ? 0 : (int) expireTime);
     return new ResponseEntry(redisEntry.getCsKey(), redisEntry.getCsValue(), true);
 
