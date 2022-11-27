@@ -21,13 +21,14 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class Constant {
+
   public static final String ZRANK_KEY = "zrank_redis_cache";
 
   public static final String KEY = "redis_cache";
 
   public static final String LOCK = "redis_lock";
 
-  public static final int[] NUM_THREADS = new int[]{10, 50, 100, 1000, 2000, 3000, 4000, 5000,
+  public static final int[] NUM_THREADS = new int[]{10, 50, 200, 1000, 2000, 3000, 4000, 5000,
       10000};
 
   public static final String TOPIC = "reqToMysql";
